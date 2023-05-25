@@ -1,1 +1,0 @@
-Voir également les exemples déposés dans le dossier "Exemples Cours 1 Multi processing"
