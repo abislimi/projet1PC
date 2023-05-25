@@ -1,6 +1,15 @@
 # Cours hippique
 # Version très basique, sans mutex sur l'écran, sans arbitre, sans annoncer le gagant, ... ...
 
+
+# Programmeur : Carisey Corentin
+# Date de DEBUT 25 Mai 2023
+# Dernière modif
+#A Faire : 
+# - Liste de chevaux
+# -affichage permanent 1er et dernier
+#
+
 # Quelques codes d'échappement (tous ne sont pas utilisés)
 CLEARSCR="\x1B[2J\x1B[;H"          #  Clear SCReen
 CLEAREOS = "\x1B[J"                #  Clear End Of Screen
@@ -48,7 +57,7 @@ CL_WHITE="\033[01;37m"                  #  Blanc
 #-------------------------------------------------------
 import multiprocessing as mp
  
-import os, time,math, random, sys, ctypes
+import os, time,math, random, sys, ctypes, array
 
 # Une liste de couleurs à affecter aléatoirement aux chevaux
 lyst_colors=[CL_WHITE, CL_RED, CL_GREEN, CL_BROWN , CL_BLUE, CL_MAGENTA, CL_CYAN, CL_GRAY,
@@ -107,6 +116,7 @@ def course_hippique(keep_running) :
 
 # def arbitre():
 
+    
 
 
 
@@ -127,6 +137,8 @@ if __name__ == "__main__" :
     Nb_process=20
     mes_process = [0 for i in range(Nb_process)]
     
+    #Tableau des chevaux
+    tableau = mp.Array("i",Nb_process)
 
     effacer_ecran()
     curseur_invisible()
@@ -137,6 +149,13 @@ if __name__ == "__main__" :
 
     move_to(Nb_process+10, 1)
     print("tous lancés")
+
+
+
+    #Process arbitre
+    #P_arbitre = mp.Process(target=arbitre, args=())
+
+
 
     for i in range(Nb_process): mes_process[i].join()
 
