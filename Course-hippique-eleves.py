@@ -6,8 +6,7 @@
 # Date de DEBUT 25 Mai 2023
 # Dernière modif
 #A Faire : 
-# - Liste de chevaux
-# -affichage permanent 1er et dernier
+# -ADAPTER arbitre au nouvel affichage
 #
 
 # Quelques codes d'échappement (tous ne sont pas utilisés)
@@ -74,15 +73,21 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 
 
 # La tache d'un cheval
-def un_cheval(ma_ligne : int, keep_running) : # ma_ligne commence à 0
+def un_cheval(repere_cheval : int, keep_running) : # repere_cheval commence à 0
     col=1
-
+    print(repere_cheval)
     while col < LONGEUR_COURSE and keep_running.value :
-        move_to(ma_ligne+1,col)         # pour effacer toute ma ligne
-        erase_line_from_beg_to_curs()
-        en_couleur(lyst_colors[ma_ligne%len(lyst_colors)])
-        print('('+chr(ord('A')+ma_ligne)+'>')
-        tableau[ma_ligne] = col                     #Chaque cheval ajoute sa position au tableau
+        for i in range(3) :
+            move_to(repere_cheval+i,col)         # pour effacer toute ma ligne
+            erase_line_from_beg_to_curs()
+            if i == 0 : print("_______\/")
+            if i == 1 : print( " /---- _.\ " )
+            if i == 2 : print("/|__"+chr(ord('A')+repere_cheval)+"___/")
+            if i == 3 : print("/\ /\ ") 
+            
+        en_couleur(lyst_colors[repere_cheval%len(lyst_colors)])
+
+        tableau[repere_cheval] = col         #Chaque cheval ajoute sa position au tableau
         col+=1
         time.sleep(0.1 * random.randint(1,5))
 
@@ -119,7 +124,7 @@ def arbitre():
     while keep_running.value :
         lst =(tableau[:])
         
-        move_to(Nb_process+1,0)         # pour effacer toute ma ligne
+        move_to(Nb_process*6+1,0)         # pour effacer toute ma ligne
         erase_line_from_beg_to_curs()
         premier_cheval = chr(lst.index(max(lst))+65)            # Recuperation du cheval a partir de sa position dans la liste
         dernier_cheval = chr(lst.index(min(lst))+65)            # Chr traduit un entier en une lettre
@@ -134,10 +139,13 @@ def arbitre():
                 keep_running == False
                 for i in range(Nb_process): 
                     mes_process[i].terminate() #Fermeture des process
+
         # Recherche des exaequo   
-        dup = {x for x in lst2 if lst2.count(x) > 1}
-        move_to(Nb_process+2,0)
-        print()
+        #dup = (x for x in lst2 if lst2.count(x) > 1)   #Récupere les colonnes exaequo
+            # Ne fonctionne pas.
+        #move_to(Nb_process+2,0)
+        #print("Chevaux exaequo",dup )
+
 
 
 
@@ -154,7 +162,7 @@ if __name__ == "__main__" :
 
     # course_hippique(keep_running)
     
-    Nb_process=5
+    Nb_process=4
     mes_process = [0 for i in range(Nb_process)]
     
     #Tableau des chevaux
@@ -164,12 +172,12 @@ if __name__ == "__main__" :
     curseur_invisible()
 
     for i in range(Nb_process):  # Lancer   Nb_process  processus
-        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,))
+        mes_process[i] = mp.Process(target=un_cheval, args= (i*4,keep_running,))
         mes_process[i].start()
 
-    move_to(Nb_process+10, 1)
+    move_to(Nb_process*6+12, 1)
 
-
+    pari = input("Pariez sur un cheval ! ")
 
     #Process arbitre
     P_arbitre = mp.Process(target=arbitre, args=())
@@ -181,4 +189,4 @@ if __name__ == "__main__" :
 
     move_to(24, 1)
     curseur_visible()
-    print("Fini")
+    
