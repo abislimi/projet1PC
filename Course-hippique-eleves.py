@@ -76,7 +76,7 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 def un_cheval(repere_cheval : int, keep_running) : # repere_cheval commence à 0
     col=1
     while col < LONGEUR_COURSE and keep_running.value :
-        for i in range(3) :
+        for i in range(4) :
             move_to(repere_cheval*4+i,col)         # pour effacer toute ma ligne
             erase_line_from_beg_to_curs()
             # Section critique
@@ -94,44 +94,29 @@ def un_cheval(repere_cheval : int, keep_running) : # repere_cheval commence à 0
 
 #------------------------------------------------
 # La partie principale :
-def course_hippique(keep_running) :
 
-    
- 
-    Nb_process=20
-    mes_process = [0 for i in range(Nb_process)]
-    
-
-    effacer_ecran()
-    curseur_invisible()
-
-    for i in range(Nb_process):  # Lancer     Nb_process  processus
-        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,))
-        mes_process[i].start()
-    mes_process[0]
-    move_to(Nb_process+10, 1)
-
-
-
-
-    for i in range(Nb_process): mes_process[i].join()
-
-    move_to(24, 1)
-    curseur_visible()
 def arbitre():
-    #Affichage 1er et Dernier
-    lst2 = () #Tableau final
-
+    k=0
     while keep_running.value :
         lst =(tableau[:]) #Tableau des positions en temps réel
         
-        move_to(Nb_process*4+1,0)         # pour effacer toute ma ligne
-        erase_line_from_beg_to_curs()
+        #Pari sur le gagnant        => NE fonctione pas
+        #mutex.acquire()
+        #move_to(Nb_process*4+1,0)         # pour effacer toute ma ligne
+        #erase_line_from_beg_to_curs()
+        #pari = input("Pariez sur le gagnant!")
+        #time.sleep(1)
+        #mutex.release()
+        
+        
+
         premier_cheval = chr(lst.index(max(lst))+65)            # Recuperation du cheval a partir de sa position dans la liste
         dernier_cheval = chr(lst.index(min(lst))+65)            # Chr traduit un entier en une lettre
         
-        #Section critique 
-        mutex.acquire()
+        #Section critique
+        mutex.acquire()   #Affichage 1er et Dernier
+        move_to(Nb_process*4+2,0)         # pour effacer toute ma ligne
+        erase_line_from_beg_to_curs()
         print("Premier cheval : ",premier_cheval)
         print("Dernier cheval :",dernier_cheval)
         mutex.release()     #Protection d'affichage
@@ -140,16 +125,18 @@ def arbitre():
         #Detection de l'arrivée du premier cheval  
         # On considère que la course est terminé lorsque le permier cheval franchit la ligne.
         for i in range(len(lst)):
-            if lst[i] == LONGEUR_COURSE-1: #Detection fin de course
-                lst2 = lst                  #Captage du classement en fin de course
-                keep_running == False
+            if lst[i] >= LONGEUR_COURSE-1: #Detection fin de course 
+                keep_running.value = False
                 for i in range(Nb_process): 
                     mes_process[i].terminate() #Fermeture des process
-
-        # Recherche des exaequo   
-        
-        #move_to(Nb_process+2,0)
-        #print("Chevaux exaequo",dup )
+                # Recherche des exaequo   
+                lst.sort()
+                j=1
+                while j<len(lst) and lst[j] == lst[0] :
+                    mutex.acquire()
+                    move_to(Nb_process*4+2,0)
+                    print("Chevaux exaequo",chr(lst.index(lst[j])+65))
+                    mutex.release()
         
         time.sleep(0.3)
 
@@ -164,10 +151,8 @@ if __name__ == "__main__" :
         
     LONGEUR_COURSE = 50 # Tout le monde aura la même copie (donc no need to have a 'value')
     keep_running=mp.Value(ctypes.c_bool, True)
-
-    # course_hippique(keep_running)
     
-    Nb_process=4
+    Nb_process=6
     mes_process = [0 for i in range(Nb_process)]
     
     #Initialisation du verrou
