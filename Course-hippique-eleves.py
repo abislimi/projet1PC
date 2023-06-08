@@ -75,16 +75,17 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 # La tache d'un cheval
 def un_cheval(repere_cheval : int, keep_running) : # repere_cheval commence à 0
     col=1
-    print(repere_cheval)
     while col < LONGEUR_COURSE and keep_running.value :
         for i in range(3) :
-            move_to(repere_cheval+i,col)         # pour effacer toute ma ligne
+            move_to(repere_cheval*4+i,col)         # pour effacer toute ma ligne
             erase_line_from_beg_to_curs()
+            # Section critique
+            mutex.acquire()
             if i == 0 : print("_______\/")
             if i == 1 : print( " /---- _.\ " )
             if i == 2 : print("/|__"+chr(ord('A')+repere_cheval)+"___/")
             if i == 3 : print("/\ /\ ") 
-            
+            mutex.release()
         en_couleur(lyst_colors[repere_cheval%len(lyst_colors)])
 
         tableau[repere_cheval] = col         #Chaque cheval ajoute sa position au tableau
@@ -119,17 +120,22 @@ def course_hippique(keep_running) :
     curseur_visible()
 def arbitre():
     #Affichage 1er et Dernier
-    lst2 = ()
+    lst2 = () #Tableau final
 
     while keep_running.value :
-        lst =(tableau[:])
+        lst =(tableau[:]) #Tableau des positions en temps réel
         
-        move_to(Nb_process*6+1,0)         # pour effacer toute ma ligne
+        move_to(Nb_process*4+1,0)         # pour effacer toute ma ligne
         erase_line_from_beg_to_curs()
         premier_cheval = chr(lst.index(max(lst))+65)            # Recuperation du cheval a partir de sa position dans la liste
         dernier_cheval = chr(lst.index(min(lst))+65)            # Chr traduit un entier en une lettre
         
-        print('Premier:',premier_cheval,'Dernier:', dernier_cheval,lst,lst2)
+        #Section critique 
+        mutex.acquire()
+        print("Premier cheval : ",premier_cheval)
+        print("Dernier cheval :",dernier_cheval)
+        mutex.release()     #Protection d'affichage
+        
         
         #Detection de l'arrivée du premier cheval  
         # On considère que la course est terminé lorsque le permier cheval franchit la ligne.
@@ -141,12 +147,11 @@ def arbitre():
                     mes_process[i].terminate() #Fermeture des process
 
         # Recherche des exaequo   
-        #dup = (x for x in lst2 if lst2.count(x) > 1)   #Récupere les colonnes exaequo
-            # Ne fonctionne pas.
+        
         #move_to(Nb_process+2,0)
         #print("Chevaux exaequo",dup )
-
-
+        
+        time.sleep(0.3)
 
 
 # ---------------------------------------------------
@@ -165,6 +170,9 @@ if __name__ == "__main__" :
     Nb_process=4
     mes_process = [0 for i in range(Nb_process)]
     
+    #Initialisation du verrou
+    mutex = mp.Lock()
+    
     #Tableau des chevaux
     tableau = mp.Array("i",Nb_process)
     
@@ -172,13 +180,10 @@ if __name__ == "__main__" :
     curseur_invisible()
 
     for i in range(Nb_process):  # Lancer   Nb_process  processus
-        mes_process[i] = mp.Process(target=un_cheval, args= (i*4,keep_running,))
+        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,))
         mes_process[i].start()
-
-    move_to(Nb_process*6+12, 1)
-
-    pari = input("Pariez sur un cheval ! ")
-
+    
+ 
     #Process arbitre
     P_arbitre = mp.Process(target=arbitre, args=())
     P_arbitre.start()
